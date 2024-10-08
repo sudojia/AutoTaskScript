@@ -1,0 +1,57 @@
+version: '3.8'
+services:
+  AutoTaskScript:
+    image: sudojia/auto_task_script
+    container_name: AutoTaskScript
+    restart: always
+    # 挂载容器目录（默认即可）
+    volumes:
+      - ./logs:/AutoTaskScript/src/logs
+      - ./my_crontab_list.sh:/AutoTaskScript/docker/my_crontab_list.sh
+    tty: true
+    environment:
+      # 脚本更新仓库地址
+      - REPO_URL=https://github.com/sudojia/AutoTaskScript
+      # 注意环境变量填写值的时候一律不需要引号（""或者''）
+      # 注意环境变量填写值的时候一律不需要引号（""或者''）
+      # 注意环境变量填写值的时候一律不需要引号（""或者''）
+      # --------------- 配置消息通知区域 ---------------
+      # 需要哪个就配置哪个变量
+      # 通知环境变量参考源码：https://github.com/sudojia/AutoTaskScript/blob/script/src/utils/sendNotify.js
+      # 以下这些只是示例，根据自己的需求增加删除
+      # wxPusher
+      - WXPUSHER_TOKEN=
+      - WXPUSHER_UID=
+      # telegram
+      - TG_BOT_TOKEN=
+      - TG_USER_ID=
+      # Bark App
+      - BARK_PUSH=
+      # 钉钉机器人
+      - DD_BOT_TOKEN=
+      - DD_BOT_SECRET=
+      # 企业微信机器人
+      - QYWX_KEY=
+      # 其它...
+
+      # --------------- 配置脚本变量区域 ---------------
+      # 自行添加脚本所需的变量
+      # 脚本环境变量参考：https://rh-docs.netlify.app/docs/category/%E8%84%9A%E6%9C%AC%E5%88%97%E8%A1%A8
+      # 安慕希
+      - AMX_TOKEN=
+      # 飞蚂蚁旧衣回收
+      - FLY_ANT_TOKEN=
+      # 其它...
+
+      # --------------- 延迟配置 ---------------
+      # 这个选项将决定脚本在实际执行前将随机延迟多少秒
+      # 如果不设置此项，则不使用延迟。
+      # 填写数字，单位为秒，比如 RANDOM_DELAY_MAX=30 就是随机产生 0 到 29 之间的一个秒数，执行延迟的意思。
+      - RANDOM_DELAY_MAX=
+
+      # --------------- 其它配置 ---------------
+      # 配置不运行的脚本，多个脚本用 & 分隔，例如：sudojia_starMom.js&sudojia_tilta.js
+      - DO_NOT_RUN_SCRIPTS=
+      # 下面选项默认即可
+      # 使用自定义任务，上面 volumes 挂载之后这里配置对应的文件名
+      - CUSTOM_LIST_FILE=my_crontab_list.sh

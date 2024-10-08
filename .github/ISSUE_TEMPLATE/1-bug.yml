@@ -1,0 +1,42 @@
+name: '🐞Bug 提交'
+description: '使用此模板来提交一个 Bug🐞'
+title: '请输入标题'
+labels: [ '🐞Bug' ]
+body:
+  - type: textarea
+    attributes:
+      label: '📜 脚本名称'
+      description: 请输入运行出错的脚本名称
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: '🤔 问题描述'
+      description: 请输入清晰且简洁的问题描述
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: '🔄 重现过程'
+      description: 请提供你的重现过程步骤
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: '🌐 网络自检'
+      description: 服务器是否能正常 Ping 通脚本对应的网站
+      options:
+        - 否
+        - 是
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: '🔗 附加信息'
+      description: 请提供你的错误截图及错误日志输出信息或者任何有助于的其他信息
+    validations:
+      required: true
