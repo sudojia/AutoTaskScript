@@ -2,7 +2,7 @@
  * 特步会员中心小程序
  *
  * 抓包 URL：https://mall-mobile-v6.vecrp.com 获取请求头 token
- * export TEBU_JSON = 'eyJhxxxxxxxxxxxxxxxx'
+ * export TEBU_TOKEN = 'eyJhxxxxxxxxxxxxxxxx'
  * 多账号用 & 或换行
  *
  * @author Telegram@sudojia
