@@ -15,12 +15,10 @@
  * cron: 39 8 * * *
  */
 const initScript = require('../utils/initScript')
-const {$, notify, sudojia, checkUpdate} = initScript('龙湖天街');
+const {$, notify, sudojia} = initScript('龙湖天街');
 const longForList = process.env.LONG_FOR_TOKEN ? process.env.LONG_FOR_TOKEN.split(/[\n&]/) : [];
 // 消息推送
 let message = '';
-// 当前版本
-const currentVersion = "1.0.0";
 // 接口地址
 const baseUrl = 'https://gw2c-hw-open.longfor.com'
 // 请求头
@@ -30,18 +28,17 @@ const headers = {
     'Accept-Language': 'zh-CN,zh;q=0.9',
 };
 // 签到抽奖的key
-const API_KEY = 'c06753f1-3e68-437d-b592-b94656ea5517';
-const BU_CODE = 'C20400';
-const DX_RISK_SOURCE = 5;
+const API_KEY = '2f9e3889-91d9-4684-8ff5-24d881438eaf';
+const BU_CODE = 'L00502';
+const DX_RISK_SOURCE = 1;
 const DX_RISK_CAPTCHA_TOKEN = 'undefined';
-const CHANNEL = 'C2';
+const CHANNEL = 'L0';
 // 签到活动ID
-const ACTIVITY_NO_SIGN = '11111111111686241863606037740000';
+const ACTIVITY_NO_SIGN = '11111111111736501868255956070000';
 // 抽奖活动ID
-const ACTIVITY_NO_LOTTERY = '11111111111725156856102879310000';
+const ACTIVITY_NO_LOTTERY = 'AP258011N6GVNDNT';
 
 !(async () => {
-    await checkUpdate($.name, currentVersion, notify, longForList);
     console.log(`\n已随机分配 User-Agent\n\n${headers['user-agent'] || headers['User-Agent']}`);
     for (let i = 0; i < longForList.length; i++) {
         const index = i + 1;
