@@ -1,0 +1,44 @@
+name: '🚀功能请求'
+description: '使用此模板来提交一个功能请求🚀'
+title: '请输入标题'
+labels: [ '🚀功能请求' ]
+body:
+  - type: dropdown
+    attributes:
+      label: '📲 服务平台'
+      options:
+        - 微信小程序
+        - 微信公众号
+        - 客户端
+        - Web 网页
+        - 其它
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: '🧸 应用官网'
+      description: 网页就输入网址，小程序、客户端等直接输入名称即可
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: '🤔 活动入口'
+      description: 请输入要请求的功能入口位置，如：我的 -> 右上角 -> 每日签到
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: '🎁 奖励说明'
+      description: 请清晰描述该功能所带来的奖励
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: '🔗 附加信息'
+      description: 请提供该功能的详细截图及奖励、功能位置等任何有助于的其他信息
+    validations:
+      required: true
