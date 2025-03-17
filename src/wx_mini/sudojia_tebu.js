@@ -20,6 +20,10 @@ const tbList = process.env.TEBU_TOKEN ? process.env.TEBU_TOKEN.split(/[\n&]/) : 
 let message = '';
 // 接口地址
 const baseUrl = 'https://mall-mobile-v6.vecrp.com'
+// 店铺ID
+const shopId = '100656040';
+// 活动ID
+let activityId;
 // 请求头
 const headers = {
     "user-agent": sudojia.getRandomUserAgent(),
@@ -49,6 +53,8 @@ const headers = {
 async function main() {
     await getUserInfo();
     await $.wait(sudojia.getRandomWait(1200, 2000));
+    await getActivityId();
+    await $.wait(sudojia.getRandomWait(1200, 2000));
     await sign();
     await $.wait(sudojia.getRandomWait(1200, 2000));
     await getMyBonusLogs();
@@ -61,10 +67,9 @@ async function main() {
  */
 async function getUserInfo() {
     try {
-        const data = await sudojia.sendRequest(`${baseUrl}/mobile/customer/initMy?shopId=100656040`, 'get', headers);
+        const data = await sudojia.sendRequest(`${baseUrl}/mobile/customer/initMy?shopId=${shopId}`, 'get', headers);
         if (!data.success) {
-            console.error(data.msg);
-            return;
+            return console.error(data.msg);
         }
         const info = data.result.customer;
         const hiddenMobile = `${info.mobile.slice(0, 3)}***${info.mobile.slice(-3)}`;
@@ -76,6 +81,32 @@ async function getUserInfo() {
 }
 
 /**
+ * 获取活动ID
+ *
+ * @returns {Promise<void>}
+ */
+async function getActivityId() {
+    try {
+        const data = await sudojia.sendRequest(`${baseUrl}/mobile/customer/queryMobilePersonCenterTemplateByShopId?shopId=${shopId}`, 'get', headers);
+        if (!data.success) {
+            return console.error(data.msg);
+        }
+        const component = data.result.views.find(item => item.componentId === 'WHXG8614883');
+        if (!component) {
+            return console.warn('未找到 componentId 为 WHXG8614883');
+        }
+        const getActivityId = component.defaultConfig.img.find(img => img.link && img.link.path === '/pages/ehd/activities/signIn/index');
+        if (!getActivityId) {
+            return console.warn('未找到 activityId');
+        }
+        activityId = getActivityId.link.id;
+        console.log(`activityId 已更新：${activityId}`);
+    } catch (e) {
+        console.error(`获取活动ID时发生异常：${e}`);
+    }
+}
+
+/**
  * 签到
  *
  * @return {Promise<void>}
@@ -83,13 +114,12 @@ async function getUserInfo() {
 async function sign() {
     try {
         const data = await sudojia.sendRequest(`${baseUrl}/mobile/activity/sign/sign`, 'post', headers, {
-            "shopId": "100656040",
-            "activityId": "ca833e76-cea7-4df3-aa4a-efebf467d18a",
+            "shopId": shopId,
+            "activityId": activityId,
             "signDate": moment().format('YYYY-MM-DD')
         });
         if (!data.success) {
-            console.error(data.msg);
-            return;
+            return console.error(data.msg);
         }
         console.log(`签到成功，积分+${data.result.integral}`);
         message += `签到成功，积分+${data.result.integral}\n`;
@@ -105,10 +135,9 @@ async function sign() {
  */
 async function getMyBonusLogs() {
     try {
-        const data = await sudojia.sendRequest(`${baseUrl}/mobile/customer/getMyAllPoint?shopId=100656040`, 'get', headers);
+        const data = await sudojia.sendRequest(`${baseUrl}/mobile/customer/getMyAllPoint?shopId=${shopId}`, 'get', headers);
         if (!data.success) {
-            console.error(data.msg);
-            return;
+            return console.error(data.msg);
         }
         console.log(`当前积分：${data.result[0].score}`);
         message += `当前积分：${data.result[0].score}\n\n`;
