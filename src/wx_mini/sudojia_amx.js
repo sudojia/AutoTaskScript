@@ -1,7 +1,7 @@
 /**
  * 安慕希小程序
  *
- * 抓包 Host：https://wx-amxshop.msxapi.digitalyili.com 获取请求头 accesstoken 的值
+ * 抓包 Host：https://msmarket.msx.digitalyili.com 获取请求头 access-token 的值
  * export AMX_TOKEN = 'xxxxx'
  * 多账号用 & 或换行
  *
@@ -17,7 +17,7 @@ const {$, notify, sudojia, checkUpdate} = initScript('安慕希');
 const amxList = process.env.AMX_TOKEN ? process.env.AMX_TOKEN.split(/[\n&]/) : [];
 let message = '';
 // 接口地址
-const baseUrl = 'https://amxshop.yili.com'
+const baseUrl = 'https://msmarket.msx.digitalyili.com/gateway'
 // 请求头
 const headers = {
     'user-agent': sudojia.getRandomUserAgent(),
@@ -32,18 +32,9 @@ const headers = {
     console.log(`\n已随机分配 User-Agent\n\n${headers['user-agent'] || headers['User-Agent']}`);
     for (let i = 0; i < amxList.length; i++) {
         const index = i + 1;
-        headers.accesstoken = amxList[i];
+        headers['access-token'] = amxList[i];
         console.log(`\n*****第[${index}]个${$.name}账号*****`);
-        const isLogin = await getUser();
-        if (!isLogin) {
-            console.error(`Token 已失效`);
-            await notify.sendNotify(`「Token失效通知」`, `${$.name}账号[${index}] Token 已失效，请重新登录获取 Token\n\n`);
-            continue;
-        }
         message += `📣====${$.name}账号[${index}]====📣\n`;
-        message += `安慕希用户：${$.nickName}\n`;
-        console.log(`${$.nickName}登录成功~`);
-        await $.wait(sudojia.getRandomWait(800, 1200));
         await main();
         await $.wait(sudojia.getRandomWait(2000, 2500));
     }
@@ -53,63 +44,51 @@ const headers = {
 })().catch((e) => $.logErr(e)).finally(() => $.done());
 
 async function main() {
-    await checkStatus();
-    await $.wait(sudojia.getRandomWait(800, 1200))
-    console.log(`开始签到...`);
-    await $.wait(sudojia.getRandomWait(1000, 1800));
-    if ($.signed) {
-        message += `今日已签到\n\n`;
-        console.log(`今日已签到`);
-        return;
-    }
-    await signIn();
+    await getUserInfo();
     await $.wait(sudojia.getRandomWait(1500, 2300));
-    await checkStatus();
+    await getSignStatus();
     await $.wait(sudojia.getRandomWait(1500, 2300));
-    await getCount();
-}
-
-/**
- * 检测签到状态
- *
- * @return {Promise<void>}
- */
-async function checkStatus() {
-    try {
-        const data = await sudojia.sendRequest(`${baseUrl}/api/user/sign/status`, 'get', headers);
-        if (200 === data.code) {
-            // false; 未签到
-            $.signed = data.data.signed;
-            // 签到天数
-            $.signDays = data.data.signDays;
-        } else {
-            console.error(`${data.msg}`);
-        }
-    } catch (e) {
-        console.error(`检测签到状态时发生异常：${e}`);
-    }
+    await getPoints();
 }
 
 /**
  * 获取用户信息
  *
- * @return {Promise<boolean>}
+ * @returns {Promise<void>}
  */
-async function getUser() {
+async function getUserInfo() {
     try {
-        const data = await sudojia.sendRequest(`${baseUrl}/api/user/getUser`, 'get', headers);
-        if ('未登陆或登陆超时' === data.msg || !data.data) {
-            return false;
+        const data = await sudojia.sendRequest(`${baseUrl}/api/auth/account/user/info`, 'get', headers);
+        if (!data.status) {
+            return console.error(`获取用户信息失败：${data.error}`);
         }
-        if (200 === data.code) {
-            $.nickName = data.data.user.name;
-        } else {
-            console.error(`用户信息获取失败：${data.msg}`);
-        }
-        return true;
+        const {nickName, mobile} = data?.data;
+        console.log(`${nickName}(${mobile})`);
+        message += `${nickName}(${mobile})\n`;
     } catch (e) {
         console.error(`获取用户信息时发生异常：${e}`);
-        return false;
+    }
+}
+
+/**
+ * 获取签到状态
+ *
+ * @return {Promise<void>}
+ */
+async function getSignStatus() {
+    try {
+        const data = await sudojia.sendRequest(`${baseUrl}/api/member/sign/status`, 'get', headers);
+        if (!data.status) {
+            return console.error(`获取签到状态失败：${data.error}`);
+        }
+        if (data?.data.signed) {
+            message += `今日已签到\n`;
+            return console.error(`今日已签到`);
+        }
+        await $.wait(sudojia.getRandomWait(1500, 2300));
+        await signIn();
+    } catch (e) {
+        console.error(`获取签到状态时发生异常：${e}`);
     }
 }
 
@@ -120,16 +99,14 @@ async function getUser() {
  */
 async function signIn() {
     try {
-        const data = await sudojia.sendRequest(`${baseUrl}/api/user/daily/sign?exParams=false`, 'get', headers);
-        if (200 === data.code) {
-            if (data.data) {
-                message += `签到成功，积分+${data.data.dailySign.bonusPoints}\n`;
-                console.log(`签到成功，积分+${data.data.dailySign.bonusPoints}`);
-            } else {
-                console.error(`签到失败：${data.msg}`);
-            }
+        const data = await sudojia.sendRequest(`${baseUrl}/api/member/daily/sign`, 'get', headers);
+        if (!data.status) {
+            return console.error(`签到失败：${data.error}`);
         }
-    } catch (e) {
+        console.log(`签到成功，积分+${data?.data?.dailySign?.bonusPoint}`);
+        message += `签到成功，积分+${data?.data?.dailySign?.bonusPoint}\n`;
+    } catch
+        (e) {
         console.error(`签到时发生异常：${e}`);
     }
 }
@@ -139,15 +116,14 @@ async function signIn() {
  *
  * @return {Promise<void>}
  */
-async function getCount() {
+async function getPoints() {
     try {
-        const data = await sudojia.sendRequest(`${baseUrl}/api/order/getCount`, 'get', headers);
-        if (200 === data.code) {
-            message += `当前积分：${data.data.integralCount}，已连续签到：${$.signDays}天\n\n`;
-            console.log(`当前积分：${data.data.integralCount}，已连续签到：${$.signDays}天`);
-        } else {
-            console.error(`积分获取失败：${data.msg}`);
+        const data = await sudojia.sendRequest(`${baseUrl}/api/member/point`, 'get', headers);
+        if (!data.status) {
+            return console.error(`获取积分失败：${data.error}`);
         }
+        console.log(`当前积分：${data?.data}`);
+        message += `当前积分：${data?.data}\n\n`;
     } catch (e) {
         console.error(`获取积分时发生异常：${e}`);
     }
