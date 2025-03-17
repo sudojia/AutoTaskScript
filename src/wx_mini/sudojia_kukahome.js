@@ -40,7 +40,6 @@ let headers = {
         headers.AccessToken = aToken;
         headers['X-Customer'] = xCustomer;
         console.log(`\n*****第[${index}]个${$.name}账号*****`);
-        console.log(headers);
         message += `📣====${$.name}账号[${index}]====📣\n`;
         await main();
         await $.wait(sudojia.getRandomWait(2000, 2500));
