@@ -184,7 +184,6 @@ async function performInteraction(action, id, paramKey = 'post_id') {
         let data = await sudojia.sendRequest(`https://tuchong.com/gapi/interactive/${action}?_rticket=${new Date().getTime()}`, 'put', headers, {
             [paramKey]: id
         });
-        console.log(data);
         console.log(`开始取消操作`);
         await $.wait(sudojia.getRandomWait(1e3, 2e3));
         data = await sudojia.sendRequest(`https://tuchong.com/gapi/interactive/${action}?${paramKey}=${id}`, 'DELETE', headers);
