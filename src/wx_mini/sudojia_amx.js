@@ -99,7 +99,7 @@ async function getSignStatus() {
  */
 async function signIn() {
     try {
-        const data = await sudojia.sendRequest(`${baseUrl}/api/member/daily/sign`, 'get', headers);
+        const data = await sudojia.sendRequest(`${baseUrl}/api/member/daily/sign`, 'post', headers);
         if (!data.status) {
             return console.error(`签到失败：${data.error}`);
         }
