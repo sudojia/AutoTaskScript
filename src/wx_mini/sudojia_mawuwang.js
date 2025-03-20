@@ -23,7 +23,7 @@ const baseUrl = 'https://webapi.qmai.cn'
 // AppId
 const appId = 'wxc1381dc6f2213b72';
 // 签到活动ID
-const activityId = '1050350886507569152';
+const activityId = '1103263769176125440';
 // 请求头
 const headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 MicroMessenger/7.0.20.1781(0x6700143B) NetType/WIFI MiniProgramEnv/Windows WindowsWechat/WMPF WindowsWechat(0x63090a1b)XWEB/11097',
