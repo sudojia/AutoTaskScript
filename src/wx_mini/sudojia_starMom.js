@@ -53,10 +53,10 @@ const taskList = [
     for (let i = 0; i < starMomList.length; i++) {
         const index = i + 1;
         headers.token = starMomList[i];
-        await refreshToken(starMomList[i]);
+        // await refreshToken(starMomList[i]);
         console.log(`\n*****第[${index}]个${$.name}账号*****`);
         message += `📣====${$.name}账号[${index}]====📣\n`;
-        // await main();
+        await main();
         await $.wait(sudojia.getRandomWait(2000, 2500));
     }
     if (message) {
