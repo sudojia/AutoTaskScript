@@ -11,11 +11,11 @@
  * @site https://blog.imzjw.cn
  * @date 2025/04/27
  *
- * const $ = new Env('小米社区(小程序)')
+ * const $ = new Env('小米社区-小程序')
  * cron: 48 9 * * *
  */
 const initScript = require('../utils/initScript')
-const {$, notify, sudojia, checkUpdate} = initScript('小米社区(小程序)');
+const {$, notify, sudojia, checkUpdate} = initScript('小米社区-小程序');
 const xiaoMiComGeList = process.env.XIAOMI_COMM_COOKIE ? process.env.XIAOMI_COMM_COOKIE.split(/[\n&]/) : [];
 // 消息推送
 let message = '';
@@ -72,8 +72,13 @@ async function getUserInfo() {
 
 async function sign() {
     try {
-        const data = await sudojia.sendRequest(`${baseUrl}/mtop/planet/vip/member/addCommunityGrowUpPointByActionV2`, 'post', headers, '');
+        const miuiVipPh = headers.Cookie.match(/miui_vip_ph=([^;]+)/)[1];
+        if (!miuiVipPh) {
+            return console.error(`未找到 miui_vip_ph`);
+        }
+        const data = await sudojia.sendRequest(`${baseUrl}/mtop/planet/vip/member/addCommunityGrowUpPointByActionV2?miui_vip_ph=${encodeURIComponent(miuiVipPh)}`, 'post', headers, 'action=WECHAT_CHECKIN_TASK');
         if (200 !== data.status) {
+            message += `${data.message} -> 如果加分失败，说明签到过了\n`;
             return console.error(`签到失败：${data.message}`);
         }
         console.log(`签到成功，积分+${data?.entity?.score}`);
