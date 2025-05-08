@@ -26,7 +26,7 @@ const headers = {
     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
     "User-Agent": sudojia.getRandomUserAgent('PC'),
     'Accept': 'application/json, text/javascript, */*; q=0.01',
-    'Accept-Encoding': 'gzip, deflate, br, zstd',
+    'Accept-Encoding': 'gzip, deflate',
 };
 
 !(async () => {
@@ -84,8 +84,9 @@ async function login(url, email, pwd) {
         console.log('登录成功~');
         await $.wait(sudojia.getRandomWait(800, 1200));
         await checkin(url);
+        delete headers.Cookie;
     } catch (e) {
-        console.error(`登录时发生异常：${e}`);
+        console.error(`登录时发生异常：${e.errors}`);
     }
 }
 
