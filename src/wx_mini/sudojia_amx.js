@@ -22,8 +22,11 @@ const baseUrl = 'https://msmarket.msx.digitalyili.com/gateway'
 const headers = {
     'user-agent': sudojia.getRandomUserAgent(),
     'accept-encoding': 'gzip, deflate, br',
-    'referer': 'https://servicewechat.com/wxf2a6206f7e2fd712/666/page-frame.html',
-    'content-type': 'application/x-www-form-urlencoded',
+    'referer': 'https://servicewechat.com/wxf2a6206f7e2fd712/780/page-frame.html',
+    'content-type': 'application/json',
+    'xweb_xhr': '1',
+    'scene': '1145',
+    'oms': 'old',
     'accept': '*/*',
 };
 
@@ -99,15 +102,14 @@ async function getSignStatus() {
  */
 async function signIn() {
     try {
-        const data = await sudojia.sendRequest(`${baseUrl}/api/member/daily/sign`, 'post', headers);
+        const data = await sudojia.sendRequest(`${baseUrl}/api/member/daily/sign`, 'post', headers, {});
         if (!data.status) {
             return console.error(`签到失败：${data.error}`);
         }
         console.log(`签到成功，积分+${data?.data?.dailySign?.bonusPoint}`);
         message += `签到成功，积分+${data?.data?.dailySign?.bonusPoint}\n`;
-    } catch
-        (e) {
-        console.error(`签到时发生异常：${e}`);
+    } catch (e) {
+        console.error(`签到时发生异常：${formatRequestError(e)}`);
     }
 }
 
@@ -127,4 +129,14 @@ async function getPoints() {
     } catch (e) {
         console.error(`获取积分时发生异常：${e}`);
     }
+}
+
+function formatRequestError(error) {
+    const status = error?.response?.status;
+    const contentType = String(error?.response?.headers?.['content-type'] || '');
+    const responseBody = typeof error?.response?.data === 'string' ? error.response.data : '';
+    if (status === 403 && (contentType.includes('text/html') || /<html[\s>]/i.test(responseBody))) {
+        return 'HTTP 403：网关返回 WAF HTML，签到请求未被业务接口接受';
+    }
+    return [error?.message || String(error), status ? `HTTP ${status}` : ''].filter(Boolean).join(' ');
 }
