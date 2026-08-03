@@ -5,8 +5,8 @@
  * 抓包 URL：https://hd.opposhop.cn/api/cn/oapi/users/web/member/check?unpaid=0 获取 Cookie 和 User-Agent
  * export OPPOSHOP_COOKIE = 'xxxxxxxxx'
  * export OPPO_USER_AGENT = 'Mozilla/5.0 (Linux; Android 10; xxxxxxxxx'
- * export OPPO_ACTIVITY_IDS = '签到活动ID#任务列表活动ID'
- * OPPO Activity ID 获取说明：https://rh-docs.netlify.app/docs/list/client/opposhop/#%E8%8E%B7%E5%8F%96%E8%AF%B4%E6%98%8E
+ * 脚本目前已自动获取签到&任务ID
+ *
  * 多账号用 & 或换行
  *
  * @author Telegram@sudojia
@@ -26,14 +26,9 @@ const UserAgent = process.env.OPPO_USER_AGENT;
 let message = '';
 // 接口地址
 const baseUrl = 'https://hd.opposhop.cn'
-// 活动集合ID，签到活动ID#任务列表活动ID
-const activityIdsFromEnv = process.env.OPPO_ACTIVITY_IDS || '1838147945355288576#1838149802563739648';
-// 按照 # 分割字符串
-const activityIds = activityIdsFromEnv.split('#');
-// 签到活动ID
-const signActivityId = activityIds[0] || '1838147945355288576';
-// 任务列表活动ID
-const taskActivityId = activityIds[1] || '1838149802563739648';
+const activityPageUrl = `${baseUrl}/bp/b371ce270f7509f0?nightModelEnable=true&us=wode&um=qiandaobanner`;
+let signActivityId;
+let taskActivityId;
 // 判断User-Agent
 if (!UserAgent) {
     console.error('请先填写OPPO商城的 User-Agent、变量名【OPPO_USER_AGENT】');
@@ -55,6 +50,12 @@ const signInDaysMap = {
 
 !(async () => {
     await checkUpdate($.name, oppoList);
+    const activityIds = await getActivityIds();
+    if (!activityIds) {
+        return;
+    }
+    signActivityId = activityIds.signActivityId;
+    taskActivityId = activityIds.taskActivityId;
     for (let i = 0; i < oppoList.length; i++) {
         const index = i + 1;
         $.signDayNum = 1;
@@ -298,4 +299,81 @@ async function receiveSignInAward(awardId) {
     } catch (e) {
         console.error(`领取连续签到奖励时发生异常 -> `, e);
     }
+}
+
+
+/**
+ * 从签到详情页的 DSL 中获取当月签到和任务活动 ID。
+ *
+ * @returns {Promise<{signActivityId: string, taskActivityId: string} | null>}
+ */
+async function getActivityIds() {
+    try {
+        const html = await sudojia.sendRequest(activityPageUrl, 'get', headers);
+        const dsl = parseEmbeddedJson(html, 'window.__DSL__');
+        const components = Object.values(dsl.byId || {});
+        const signComponent = components.find((component) =>
+            component && component.type === 'SignIn' && component.attr && component.attr.activityInfo
+        );
+        const taskComponent = components.find((component) =>
+            component && component.type === 'Task' && component.attr && component.attr.taskActivityInfo
+        );
+        const signInfo = signComponent && signComponent.attr.activityInfo;
+        const taskInfo = taskComponent && taskComponent.attr.taskActivityInfo;
+        const signId = signInfo && String(signInfo.activityId || '').trim();
+        const taskId = taskInfo && String(taskInfo.activityId || '').trim();
+        if (!/^\d+$/.test(signId) || !/^\d+$/.test(taskId)) {
+            throw new Error('页面中未找到有效的签到或任务活动 ID');
+        }
+        console.log(`已自动获取${new Date().getMonth() + 1}月活动 ID：签到[${signId}]，任务[${taskId}]`);
+        return {signActivityId: signId, taskActivityId: taskId};
+    } catch (e) {
+        console.error('自动获取 OPPO 活动 ID 失败 -> ', e.message || e);
+        return null;
+    }
+}
+
+/**
+ * 解析 HTML 中的 window.__DSL__ JSON
+ *
+ * @param {string} html
+ * @param {string} variableName
+ * @returns {Record<string, any>}
+ */
+function parseEmbeddedJson(html, variableName) {
+    if (typeof html !== 'string') {
+        throw new TypeError('活动详情页返回内容不是 HTML');
+    }
+    const assignmentIndex = html.indexOf(variableName);
+    const objectStart = html.indexOf('{', assignmentIndex);
+    if (assignmentIndex < 0 || objectStart < 0) {
+        throw new Error(`未找到 ${variableName}`);
+    }
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    for (let i = objectStart; i < html.length; i++) {
+        const char = html[i];
+        if (inString) {
+            if (escaped) {
+                escaped = false;
+            } else if (char === '\\') {
+                escaped = true;
+            } else if (char === '"') {
+                inString = false;
+            }
+            continue;
+        }
+        if (char === '"') {
+            inString = true;
+        } else if (char === '{') {
+            depth++;
+        } else if (char === '}') {
+            depth--;
+            if (depth === 0) {
+                return JSON.parse(html.slice(objectStart, i + 1));
+            }
+        }
+    }
+    throw new Error(`未找到完整的 ${variableName} JSON`);
 }
