@@ -1,5 +1,6 @@
 /**
- * 海澜之家小程序 - 底部 - 游戏
+ * #小程序://海澜之家/oDZFpkO2Ppe4Dla
+ * 底部中间 -> 游戏
  *
  * 进入游戏后，抓 https://gmdevpro.hlzjppgl.cn/server/api/authorized-login 获取请求体 union_id 的值即可
  * {
@@ -21,6 +22,7 @@ const initScript = require('../utils/initScript')
 const {$, notify, sudojia, checkUpdate} = initScript('海澜之家-游戏');
 const hlzjList = process.env.HLZJ_UNID ? process.env.HLZJ_UNID.split(/[\n&]/) : [];
 let message = '';
+const SIGNATURE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 // 接口地址
 const baseUrl = 'https://gmdevpro.hlzjppgl.cn'
 // 请求头
@@ -39,12 +41,15 @@ const headers = {
     console.log(`\n已随机分配 User-Agent\n\n${headers['user-agent'] || headers['User-Agent']}`);
     for (let i = 0; i < hlzjList.length; i++) {
         const index = i + 1;
+        $.userId = '';
+        $.treeId = '';
+        delete headers.Authorization;
         $.unionId = hlzjList[i];
         headers.Referer = `https://gmdevpro.hlzjppgl.cn/?token=${$.unionId}&timestamp=${Date.now()}`;
         console.log(`\n*****第[${index}]个${$.name}账号*****`);
         message += `📣====${$.name}账号[${index}]====📣\n`;
         await main();
-        await $.wait(sudojia.getRandomWait(2000, 2500));
+        await $.wait(sudojia.getRandomWait(2e3, 3e3));
     }
     if (message) {
         await notify.sendNotify(`「${$.name}」`, `${message}`);
@@ -53,31 +58,31 @@ const headers = {
 
 async function main() {
     await getUserInfo();
-    await $.wait(sudojia.getRandomWait(2000, 2500));
+    await $.wait(sudojia.getRandomWait(2e3, 3e3));
     await getTodayWater();
-    await $.wait(sudojia.getRandomWait(2000, 2500));
+    await $.wait(sudojia.getRandomWait(2e3, 3e3));
     await getDayList();
-    await $.wait(sudojia.getRandomWait(2000, 2500));
+    await $.wait(sudojia.getRandomWait(2e3, 3e3));
     // 浏览15s
-    console.log(`开始浏览15s奖励...`);
-    await receiveTaskWater(3);
+    // console.log(`开始浏览15s奖励...`);
+    // await receiveTaskWater(3);
     // 领电力礼包 7-12 14-17 18-22
-    console.log('开始领三餐礼包...');
-    await receiveTaskWater(7);
-    await $.wait(sudojia.getRandomWait(2000, 2500));
+    // console.log('开始领三餐礼包...');
+    // await receiveTaskWater(7);
+    // await $.wait(sudojia.getRandomWait(2000, 2500));
     // 答题
-    console.log('开始答题...');
-    await answerTaskWater();
-    await $.wait(sudojia.getRandomWait(1200, 1800));
-    await answerTaskWater(1);
-    await $.wait(sudojia.getRandomWait(1200, 1800));
-    await answerTaskWater(2);
-    await $.wait(sudojia.getRandomWait(2000, 2500));
+    // console.log('开始答题...');
+    // await answerTaskWater();
+    // await $.wait(sudojia.getRandomWait(1200, 1800));
+    // await answerTaskWater(1);
+    // await $.wait(sudojia.getRandomWait(1200, 1800));
+    // await answerTaskWater(2);
+    // await $.wait(sudojia.getRandomWait(2000, 2500));
     await joinPower();
-    await $.wait(sudojia.getRandomWait(1200, 1800));
-    await chooseInvest();
-    await $.wait(sudojia.getRandomWait(1200, 1800));
-    await receiveInvest();
+    // await $.wait(sudojia.getRandomWait(1200, 1800));
+    // await chooseInvest();
+    // await $.wait(sudojia.getRandomWait(1200, 1800));
+    // await receiveInvest();
 }
 
 /**
@@ -87,7 +92,7 @@ async function main() {
  */
 async function getUserInfo() {
     try {
-        const data = await sudojia.sendRequest(`${baseUrl}/server/api/authorized-login`, 'post', headers, {
+        const data = await sendRequest(`${baseUrl}/server/api/authorized-login`, 'post', headers, {
             "union_id": $.unionId,
             "invite_user_id": "78630"
         });
@@ -96,6 +101,7 @@ async function getUserInfo() {
             return;
         }
         headers.Authorization = `Bearer ${data.data.token}`;
+        $.userId = data.data.user_info.id || '';
         console.log(`${data.data.user_info.nick_name}(${data.data.user_info.user_no})`);
         message += `${data.data.user_info.nick_name}(${data.data.user_info.user_no})\n`;
         $.treeId = data.data.user_info.tree_id;
@@ -111,7 +117,7 @@ async function getUserInfo() {
  */
 async function getDayList() {
     try {
-        const data = await sudojia.sendRequest(`${baseUrl}/server/api/day-list`, 'post', headers);
+        const data = await sendRequest(`${baseUrl}/server/api/day-list`, 'post', headers);
         if (200 !== data.code) {
             console.error(data.message);
             return;
@@ -136,7 +142,7 @@ async function getDayList() {
  */
 async function signIn() {
     try {
-        const data = await sudojia.sendRequest(`${baseUrl}/server/api/day-sign`, 'post', headers);
+        const data = await sendRequest(`${baseUrl}/server/api/day-sign`, 'post', headers);
         if (200 !== data.code) {
             console.error(data.message);
             return;
@@ -155,7 +161,7 @@ async function signIn() {
  */
 async function getTodayWater() {
     try {
-        const data = await sudojia.sendRequest(`${baseUrl}/server/api/user/get-today-water`, 'post', headers);
+        const data = await sendRequest(`${baseUrl}/server/api/user/get-today-water`, 'post', headers);
         if (200 !== data.code) {
             message += `今日电力奖励已领取！\n`;
             console.error(`领取今日电力奖励失败：${data.message}`);
@@ -177,7 +183,7 @@ async function getTodayWater() {
  */
 async function receiveTaskWater(tid) {
     try {
-        const data = await sudojia.sendRequest(`${baseUrl}/server/api/task/receive-task-water`, 'post', headers, {
+        const data = await sendRequest(`${baseUrl}/server/api/task/receive-task-water`, 'post', headers, {
             "tid": tid
         });
         if (200 !== data.code) {
@@ -202,7 +208,7 @@ async function receiveTaskWater(tid) {
 async function answerTaskWater(tid = 0) {
     try {
         await $.wait(sudojia.getRandomWait(1000, 1500));
-        const data = await sudojia.sendRequest(`${baseUrl}/server/api/task/answer-task-water`, 'post', headers, {
+        const data = await sendRequest(`${baseUrl}/server/api/task/answer-task-water`, 'post', headers, {
             "tid": tid
         });
         await $.wait(sudojia.getRandomWait(1000, 1500));
@@ -223,7 +229,7 @@ async function answerTaskWater(tid = 0) {
  */
 async function enablePower() {
     try {
-        const data = await sudojia.sendRequest(`${baseUrl}/server/api/authorized-login`, 'post', headers, {
+        const data = await sendRequest(`${baseUrl}/server/api/authorized-login`, 'post', headers, {
             "union_id": $.unionId,
             "invite_user_id": ""
         });
@@ -245,7 +251,7 @@ async function enablePower() {
  */
 async function joinPower() {
     try {
-        const initialData = await sudojia.sendRequest(`${baseUrl}/server/api/game/use-power`, 'post', headers, {
+        const initialData = await sendRequest(`${baseUrl}/server/api/game/use-power`, 'post', headers, {
             "num": 1,
             "user_tree_id": $.treeId
         });
@@ -258,7 +264,7 @@ async function joinPower() {
         let remainingJoins = initialData.data.user_tree.send_water;
         while (remainingJoins > 0) {
             await $.wait(sudojia.getRandomWait(1200, 1800));
-            const responseData = await sudojia.sendRequest(`${baseUrl}/server/api/game/use-power`, 'post', headers, {
+            const responseData = await sendRequest(`${baseUrl}/server/api/game/use-power`, 'post', headers, {
                 "num": 1,
                 "user_tree_id": $.treeId
             });
@@ -289,7 +295,7 @@ async function joinPower() {
  */
 async function receiveBox() {
     try {
-        const data = await sudojia.sendRequest(`${baseUrl}/server/api/game/receive-box`, 'post', headers);
+        const data = await sendRequest(`${baseUrl}/server/api/game/receive-box`, 'post', headers);
         if (200 !== data.code) {
             console.error(`领取宝箱失败：${data.message}`);
             return;
@@ -308,7 +314,7 @@ async function receiveBox() {
 async function chooseInvest() {
     try {
         console.log('开始投资任务，默认选择最小投资');
-        const data = await sudojia.sendRequest(`${baseUrl}/server/api/power/choose-invest`, 'post', headers, {
+        const data = await sendRequest(`${baseUrl}/server/api/power/choose-invest`, 'post', headers, {
             "condition": "min"
         });
         if (200 !== data.code) {
@@ -328,7 +334,7 @@ async function chooseInvest() {
  */
 async function receiveInvest() {
     try {
-        const data = await sudojia.sendRequest(`${baseUrl}/server/api/power/receive-invest`, 'post', headers);
+        const data = await sendRequest(`${baseUrl}/server/api/power/receive-invest`, 'post', headers);
         if (200 !== data.code) {
             console.error(`领取投资失败：${data.message}`);
             return;
@@ -337,4 +343,28 @@ async function receiveInvest() {
     } catch (e) {
         console.error(`领取投资时发生异常：${e.response.data}`);
     }
+}
+
+function generateNonce(length = 20) {
+    let nonce = '';
+    for (let i = 0; i < length; i++) {
+        nonce += SIGNATURE_CHARS.charAt(Math.floor(Math.random() * SIGNATURE_CHARS.length));
+    }
+    return nonce;
+}
+
+function createSignedBody(data = {}) {
+    const nonce = generateNonce();
+    const timestamp = Date.now().toString();
+    const userId = $.userId || '';
+    return Object.assign({}, data || {}, {
+        nonce,
+        timestamp,
+        sign: sudojia.md5(`ff${nonce}nn${timestamp}${userId}mm`),
+    });
+}
+
+async function sendRequest(url, method, requestHeaders = headers, data = {}) {
+    const body = /^(post|put)$/i.test(method) ? createSignedBody(data) : data;
+    return sudojia.sendRequest(url, method, requestHeaders, body);
 }
