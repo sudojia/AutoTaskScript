@@ -105,12 +105,10 @@ async function signStatus() {
 async function sign() {
     try {
         const data = await sudojia.sendRequest(`${baseUrl}/api/activity/wx/task/sign/signIn`, 'post', headers);
-        if ('000' === data.code && data.data.success) {
-            console.log('签到成功！');
-            message += `签到成功！\n`;
-            await $.wait(sudojia.getRandomWait(800, 1200));
-            await getPoints();
-        } else console.error(`签到失败：${data.message}`);
+        console.log(data);
+        message += `签到响应：${data}\n`;
+        await $.wait(sudojia.getRandomWait(800, 1200));
+        await getPoints();
     } catch (e) {
         console.error(`签到时发生异常：${e}`);
     }
