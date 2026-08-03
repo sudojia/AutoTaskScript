@@ -321,7 +321,7 @@ async function getPoints() {
  */
 function getToken() {
     const currentTimestampMs = Date.now();
-    const rawString = `${currentTimestampMs}wqewq${$.openId}`;
+    const rawString = `${currentTimestampMs}ae1fd50f${$.openId}`;
     return {
         is_need_sync: 1,
         timestamp: currentTimestampMs,
